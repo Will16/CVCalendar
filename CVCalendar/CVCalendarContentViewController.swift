@@ -6,17 +6,19 @@
 //  Copyright (c) 2015 GameApp. All rights reserved.
 //
 
+// WILL CHANGES
+
 import UIKit
 
 public typealias Identifier = String
 public class CVCalendarContentViewController: UIViewController {
     // MARK: - Constants
-    public let previous = "Previous"
-    public let presented = "Presented"
-    public let following = "Following"
+    public let Previous = "Previous"
+    public let Presented = "Presented"
+    public let Following = "Following"
 
     // MARK: - Public Properties
-    public unowned let calendarView: CalendarView
+    public let calendarView: CalendarView
     public let scrollView: UIScrollView
 
     public var presentedMonthView: MonthView
@@ -45,7 +47,7 @@ public class CVCalendarContentViewController: UIViewController {
 
         super.init(nibName: nil, bundle: nil)
 
-        scrollView.contentSize = CGSize(width: frame.width * 3, height: frame.height)
+        scrollView.contentSize = CGSizeMake(frame.width * 3, frame.height)
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.showsVerticalScrollIndicator = false
         scrollView.layer.masksToBounds = true
@@ -62,10 +64,10 @@ public class CVCalendarContentViewController: UIViewController {
 
 extension CVCalendarContentViewController {
     public func updateFrames(frame: CGRect) {
-        if frame != CGRect.zero {
+        if frame != CGRectZero {
             scrollView.frame = frame
             scrollView.removeAllSubviews()
-            scrollView.contentSize = CGSize(width: frame.size.width * 3, height: frame.size.height)
+            scrollView.contentSize = CGSizeMake(frame.size.width * 3, frame.size.height)
         }
 
         calendarView.hidden = false
@@ -78,7 +80,17 @@ extension CVCalendarContentViewController {
     public func refreshPresentedMonth() {
         for weekV in presentedMonthView.weekViews {
             for dayView in weekV.dayViews {
+                
+                dayView.removePreliminaryViews()
+                dayView.removeSupplementaryViews()
                 removeCircleLabel(dayView)
+                removeDotViews(dayView)
+               
+                
+                dayView.dotMarkers.removeAll()
+             
+        
+        
                 dayView.setupDotMarker()
                 dayView.preliminarySetup()
                 dayView.supplementarySetup()
@@ -96,9 +108,11 @@ extension CVCalendarContentViewController {
         for each in dayView.subviews {
             if each is UILabel {
                 continue
-            } else if each is CVAuxiliaryView {
-                continue
-            } else {
+            }
+            else if each is CVAuxiliaryView {
+                each.removeFromSuperview()
+            }
+            else {
                 each.removeFromSuperview()
             }
         }
@@ -110,7 +124,8 @@ extension CVCalendarContentViewController {
 extension CVCalendarContentViewController {
     func removeDotViews(dayView: CVCalendarDayView) {
         for each in dayView.subviews {
-            if each is CVAuxiliaryView && each.frame.height == 13 {
+            
+            if each is CVAuxiliaryView  {
                 each.removeFromSuperview()
             }
         }
@@ -122,7 +137,7 @@ extension CVCalendarContentViewController {
 /// UIScrollViewDelegate
 extension CVCalendarContentViewController: UIScrollViewDelegate { }
 
-// Convenience API.
+/// Convenience API.
 extension CVCalendarContentViewController {
     public func performedDayViewSelection(dayView: DayView) { }
 
@@ -141,9 +156,9 @@ extension CVCalendarContentViewController {
     public func indexOfIdentifier(identifier: Identifier) -> Int {
         let index: Int
         switch identifier {
-        case previous: index = 0
-        case presented: index = 1
-        case following: index = 2
+        case Previous: index = 0
+        case Presented: index = 1
+        case Following: index = 2
         default: index = -1
         }
 
@@ -212,37 +227,32 @@ extension CVCalendarContentViewController {
             var viewsToLayout = [UIView]()
             if let calendarSuperview = calendarView.superview {
                 for constraintIn in calendarSuperview.constraints {
-                    if let firstItem = constraintIn.firstItem as? UIView,
-                        let _ = constraintIn.secondItem as? CalendarView {
+                    if let firstItem = constraintIn.firstItem as? UIView, let _ = constraintIn.secondItem as? CalendarView {
 
-                            viewsToLayout.append(firstItem)
+                        viewsToLayout.append(firstItem)
                     }
                 }
             }
 
 
-            for constraintIn in calendarView.constraints where
-                constraintIn.firstAttribute == NSLayoutAttribute.Height {
-                    constraintIn.constant = height
+            for constraintIn in calendarView.constraints where constraintIn.firstAttribute == NSLayoutAttribute.Height {
+                constraintIn.constant = height
 
-                    if animated {
-                        UIView.animateWithDuration(0.2, delay: 0,
-                                                   options: UIViewAnimationOptions.CurveLinear,
-                                                   animations: {
-                            self.layoutViews(viewsToLayout, toHeight: height)
-                            }) { _ in
-                                self.presentedMonthView.frame.size =
-                                    self.presentedMonthView.potentialSize
-                                self.presentedMonthView.updateInteractiveView()
-                        }
-                    } else {
-                        layoutViews(viewsToLayout, toHeight: height)
-                        presentedMonthView.updateInteractiveView()
-                        presentedMonthView.frame.size = presentedMonthView.potentialSize
-                        presentedMonthView.updateInteractiveView()
+                if animated {
+                    UIView.animateWithDuration(0.2, delay: 0, options: UIViewAnimationOptions.CurveLinear, animations: {
+                        self.layoutViews(viewsToLayout, toHeight: height)
+                        }) { _ in
+                            self.presentedMonthView.frame.size = self.presentedMonthView.potentialSize
+                            self.presentedMonthView.updateInteractiveView()
                     }
+                } else {
+                    layoutViews(viewsToLayout, toHeight: height)
+                    presentedMonthView.updateInteractiveView()
+                    presentedMonthView.frame.size = presentedMonthView.potentialSize
+                    presentedMonthView.updateInteractiveView()
+                }
 
-                    break
+                break
             }
         }
     }
